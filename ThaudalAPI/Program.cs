@@ -31,6 +31,7 @@ else
         builder.Configuration["Cosmos:Database"]));
 
 builder.Services.AddScoped<ITodoListService, TodoListService>();
+builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
 // Configure the HTTP request pipeline.
