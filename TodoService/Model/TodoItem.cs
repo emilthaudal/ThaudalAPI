@@ -8,7 +8,7 @@ public class TodoItem
         Title = title;
         Priority = 2;
     }
-
+    public Guid Id { get; set; }
     public bool Completed { get; set; }
     public string Title { get; set; }
     public DateTimeOffset? CompletedTime { get; set; }

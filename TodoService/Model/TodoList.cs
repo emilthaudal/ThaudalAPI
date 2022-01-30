@@ -6,8 +6,9 @@ public class TodoList
     {
         Title = title;
         TodoItems = new List<TodoItem>();
+        Id = Guid.NewGuid();
     }
-
+    public Guid Id { get; init; }
     public string Title { get; set; }
     public List<TodoItem> TodoItems { get; set; }
 }

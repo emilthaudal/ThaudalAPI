@@ -4,6 +4,8 @@ namespace TodoService.Model;
 
 public class TodoAppDbContext: DbContext
 {
+    public TodoAppDbContext(DbContextOptions options): base(options)
+    {
+    }
     public DbSet<TodoList> TodoLists { get; set; }
-    public DbSet<TodoItem> TodoItems { get; set; }
 }
