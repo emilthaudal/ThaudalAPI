@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoService", "Modules\Todo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DayOfWeekTest", "Tests\DayOfWeekTest\DayOfWeekTest.csproj", "{1F08282A-61A7-456A-83CD-8E6D2389528D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserService", "Modules\UserService\UserService.csproj", "{4740A1D6-2F00-48AE-8433-6AD45ECFF7B2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,9 +30,14 @@ Global
 		{1F08282A-61A7-456A-83CD-8E6D2389528D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F08282A-61A7-456A-83CD-8E6D2389528D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F08282A-61A7-456A-83CD-8E6D2389528D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4740A1D6-2F00-48AE-8433-6AD45ECFF7B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4740A1D6-2F00-48AE-8433-6AD45ECFF7B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4740A1D6-2F00-48AE-8433-6AD45ECFF7B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4740A1D6-2F00-48AE-8433-6AD45ECFF7B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{9A692C18-47A1-4811-8DBE-5F7CDABBF84E} = {8809556D-AC11-4B9D-9F5B-095E3FFFF0E2}
 		{1F08282A-61A7-456A-83CD-8E6D2389528D} = {FC89A14C-2056-46C3-BB4B-90DFBF07D630}
+		{4740A1D6-2F00-48AE-8433-6AD45ECFF7B2} = {8809556D-AC11-4B9D-9F5B-095E3FFFF0E2}
 	EndGlobalSection
 EndGlobal
