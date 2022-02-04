@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ThaudalAPI\ThaudalAPI.csproj" />
+      <ProjectReference Include="..\..\ThaudalAPI\ThaudalAPI.csproj" />
     </ItemGroup>
 
 </Project>
