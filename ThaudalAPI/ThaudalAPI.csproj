@@ -19,6 +19,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Modules\TodoService\TodoService.csproj" />
+      <ProjectReference Include="..\Modules\UserService\UserService.csproj" />
     </ItemGroup>
 
 </Project>
