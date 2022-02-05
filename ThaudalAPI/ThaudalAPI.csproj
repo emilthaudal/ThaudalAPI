@@ -10,6 +10,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.ApplicationInsights" Version="2.20.0" />
         <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.1" />
         <PackageReference Include="Microsoft.AspNetCore.AzureAppServices.HostingStartup" Version="6.0.1" />
         <PackageReference Include="Microsoft.AspNetCore.AzureAppServicesIntegration" Version="6.0.1" />
         <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="6.0.1" />
@@ -18,7 +19,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TodoService\TodoService.csproj" />
+        <ProjectReference Include="..\Modules\DayOfWeekService\DayOfWeekService.csproj" />
+        <ProjectReference Include="..\Modules\TodoService\TodoService.csproj" />
+        <ProjectReference Include="..\Modules\UserService\UserService.csproj" />
     </ItemGroup>
 
 </Project>

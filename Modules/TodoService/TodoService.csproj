@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.23.0"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" Version="6.0.1"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.1"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.1"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="Microsoft.AspNetCore.Hosting.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
+            <HintPath>..\..\..\..\..\usr\local\share\dotnet\shared\Microsoft.AspNetCore.App\6.0.0\Microsoft.AspNetCore.Hosting.Abstractions.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+</Project>

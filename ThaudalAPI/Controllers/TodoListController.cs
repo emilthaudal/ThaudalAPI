@@ -1,34 +1,32 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoService.Interfaces;
 using TodoService.Model;
 
-namespace ThaudalAPI.Controllers
+namespace ThaudalAPI.Controllers;
+
+[Authorize]
+[Route("api/[controller]/[action]")]
+[ApiController]
+public class TodoListController : ControllerBase
 {
-    [Route("api/[controller]/[action]")]
-    [ApiController]
-    public class TodoListController : ControllerBase
+    private readonly ITodoListService _service;
+
+    public TodoListController(ITodoListService service)
     {
-        private readonly ITodoListService _service;
+        _service = service;
+    }
 
-        public TodoListController(ITodoListService service)
-        {
-            _service = service;
-        }
-        
-        [HttpGet]
-        public async IAsyncEnumerable<TodoList> GetLists()
-        {
-            var lists = await _service.GetLists();
-            foreach (var todoList in lists)
-            {
-                yield return todoList;
-            }
-        }
+    [HttpGet]
+    public async IAsyncEnumerable<TodoList> GetLists()
+    {
+        var lists = await _service.GetLists();
+        foreach (var todoList in lists) yield return todoList;
+    }
 
-        [HttpPost]
-        public async Task<TodoList> CreateList([FromBody] TodoList todoList)
-        {
-            return await _service.CreateList(todoList);
-        }
+    [HttpPost]
+    public async Task<TodoList> CreateList([FromBody] TodoList todoList)
+    {
+        return await _service.CreateList(todoList);
     }
 }
