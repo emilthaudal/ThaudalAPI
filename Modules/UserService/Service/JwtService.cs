@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -16,27 +15,38 @@ namespace UserService.Service;
 public class JwtService : IJwtService
 {
     private readonly IConfiguration _configuration;
-    private readonly IDbContextFactory<UserDataContext> _dbContextFactory;
+    private readonly UserDataContext _context;
     private readonly ILogger<JwtService> _logger;
 
-    public JwtService(ILogger<JwtService> logger, IConfiguration configuration,
-        IDbContextFactory<UserDataContext> dbContextFactory)
+    public JwtService(ILogger<JwtService> logger, IConfiguration configuration, UserDataContext context)
     {
         _logger = logger;
         _configuration = configuration;
-        _dbContextFactory = dbContextFactory;
+        _context = context;
     }
 
     public Task<string> GenerateJwtToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_configuration["jwt:secret"]);
+        var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
+        var claims = new Dictionary<string, object>();
+        if (user.Roles != null)
+        {
+            foreach (var userRole in user.Roles)
+            {
+                claims.Add(ClaimTypes.Role, userRole);
+            }
+        }
+        
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[] {new Claim("id", user.Id.ToString())}),
             Expires = DateTime.UtcNow.AddMinutes(15),
             SigningCredentials =
-                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+            Audience = _configuration["Jwt:Audience"],
+            Issuer = _configuration["Jwt:Issuer"],
+            Claims = claims
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return Task.FromResult(tokenHandler.WriteToken(token));
@@ -48,15 +58,15 @@ public class JwtService : IJwtService
             return Task.FromResult<Guid>(default);
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_configuration["jwt:secret"]);
+        var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
         try
         {
             tokenHandler.ValidateToken(token, new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateIssuer = false,
-                ValidateAudience = false,
+                ValidateIssuer = true,
+                ValidateAudience = true,
                 ClockSkew = TimeSpan.Zero
             }, out var validatedToken);
 
@@ -84,17 +94,16 @@ public class JwtService : IJwtService
         return refreshToken;
     }
 
-    private async Task<string> GetUniqueToken()
+    private Task<string> GetUniqueToken()
     {
         while (true)
         {
-            await using var context = await _dbContextFactory.CreateDbContextAsync();
             var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-            var tokenIsUnique = !context.Users.Any(u => u.RefreshTokens.Any(t => t.Token == token));
+            var tokenIsUnique = !_context.Users.Any(u => u.RefreshTokens.Any(t => t.Token == token));
 
             if (!tokenIsUnique) continue;
 
-            return token;
+            return Task.FromResult(token);
         }
     }
 }

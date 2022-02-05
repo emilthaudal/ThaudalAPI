@@ -7,28 +7,25 @@ namespace TodoService.Service;
 
 public class TodoListService : ITodoListService
 {
-    private readonly IDbContextFactory<TodoAppDbContext> _dbContextFactory;
+    private readonly TodoAppDbContext _context;
 
-    public TodoListService(IDbContextFactory<TodoAppDbContext> dbContextFactory, IConfiguration configuration)
+    public TodoListService(TodoAppDbContext context, IConfiguration configuration)
     {
-        _dbContextFactory = dbContextFactory;
+        _context = context;
         if (!bool.TryParse(configuration["SqLite:AutomaticMigrations"], out var runMigrations) ||
             !runMigrations) return;
-        using var context = _dbContextFactory.CreateDbContext();
         context.Database.EnsureCreated();
     }
 
     public async Task<IEnumerable<TodoList>> GetLists()
     {
-        await using var context = await _dbContextFactory.CreateDbContextAsync();
-        var lists = context.TodoLists.ToList();
+        var lists = await _context.TodoLists.ToListAsync();
         return lists;
     }
 
     public async Task<TodoList> GetList(string title)
     {
-        await using var context = await _dbContextFactory.CreateDbContextAsync();
-        var list = await context.TodoLists.FirstOrDefaultAsync(t => t.Title.Equals(title));
+        var list = await _context.TodoLists.FirstOrDefaultAsync(t => t.Title.Equals(title));
         if (list == default) throw new InvalidOperationException("Todolist not found");
 
         return list;
@@ -38,9 +35,8 @@ public class TodoListService : ITodoListService
     {
         if (string.IsNullOrEmpty(todoList.Title)) throw new ArgumentNullException(todoList.Title);
 
-        await using var context = await _dbContextFactory.CreateDbContextAsync();
-        await context.TodoLists.AddAsync(todoList);
-        await context.SaveChangesAsync();
+        await _context.TodoLists.AddAsync(todoList);
+        await _context.SaveChangesAsync();
         return todoList;
     }
 
@@ -48,12 +44,11 @@ public class TodoListService : ITodoListService
     {
         if (string.IsNullOrEmpty(todoList.Title)) throw new ArgumentNullException(todoList.Title);
 
-        await using var context = await _dbContextFactory.CreateDbContextAsync();
-        var existingList = await context.TodoLists.FirstOrDefaultAsync(l => l.Title.Equals(todoList.Title));
+        var existingList = await _context.TodoLists.FirstOrDefaultAsync(l => l.Title.Equals(todoList.Title));
         if (existingList == default) throw new InvalidOperationException("Update list not found");
 
         existingList = todoList;
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
         return existingList;
     }
 }

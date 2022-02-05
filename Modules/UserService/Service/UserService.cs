@@ -24,6 +24,10 @@ public class UserService : IUserService
         _jwtService = jwtService;
         _configuration = configuration;
         _context = context;
+        
+        if (!bool.TryParse(configuration["SqLite:AutomaticMigrations"], out var runMigrations) ||
+            !runMigrations) return;
+        context.Database.EnsureCreated();
     }
 
     public async Task<AuthenticateResponse> Authenticate(AuthenticateRequest model, string ipAddress)
@@ -146,7 +150,8 @@ public class UserService : IUserService
         {
             Name = createUserRequest.Name,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserRequest.Password),
-            Username = createUserRequest.UserName
+            Username = createUserRequest.UserName,
+            Roles = new List<string> { "User"}
         };
         await _context.AddAsync(user);
         await _context.SaveChangesAsync();

@@ -65,6 +65,7 @@ public class UsersController : ControllerBase
         return Ok(new {message = "Token revoked"});
     }
 
+    [Authorize(Roles = "Administrator")]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -72,6 +73,7 @@ public class UsersController : ControllerBase
         return Ok(users);
     }
 
+    [Authorize(Roles = "Administrator")]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -79,6 +81,7 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
+    [Authorize(Roles = "Administrator")]
     [HttpGet("{id:guid}/refresh-tokens")]
     public async Task<IActionResult> GetRefreshTokens([FromQuery] Guid id)
     {

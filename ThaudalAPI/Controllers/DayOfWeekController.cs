@@ -1,3 +1,4 @@
+using DayOfWeekService.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ThaudalAPI.Controllers;
@@ -6,14 +7,15 @@ namespace ThaudalAPI.Controllers;
 [ApiController]
 public class DayOfWeekController : ControllerBase
 {
+    private readonly IDateService _service;
+
+    public DayOfWeekController(IDateService service)
+    {
+        _service = service;
+    }
     [HttpGet]
     public bool IsItFriday()
     {
-        return IsItFridayInternal(DateTime.Now);
-    }
-
-    public bool IsItFridayInternal(DateTime dateTime)
-    {
-        return dateTime.DayOfWeek.Equals(DayOfWeek.Friday);
+        return _service.IsItFridayInternal(DateTime.Now);
     }
 }
