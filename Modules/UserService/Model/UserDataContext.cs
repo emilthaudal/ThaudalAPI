@@ -6,14 +6,14 @@ namespace UserService.Model;
 
 public class UserDataContext : DbContext
 {
-    public DbSet<User> Users { get; set; }
-
     private readonly IConfiguration _configuration;
 
     public UserDataContext(IConfiguration configuration)
     {
         _configuration = configuration;
     }
+
+    public DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {

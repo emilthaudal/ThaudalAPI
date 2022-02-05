@@ -24,14 +24,13 @@ public class UsersController : ControllerBase
     {
         var response = await _userService.CreateUser(userRequest);
         if (response.Result != CreateUserResult.Ok || response.User == null) return BadRequest(response.Result);
-        var authResponse = await _userService.Authenticate(new AuthenticateRequest()
+        var authResponse = await _userService.Authenticate(new AuthenticateRequest
         {
             Password = userRequest.Password,
             Username = response.User?.Username
         }, IpAddress());
         SetTokenCookie(authResponse.RefreshToken);
         return Ok(response.User);
-
     }
 
     [AllowAnonymous]
@@ -48,10 +47,7 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> RefreshToken()
     {
         var refreshToken = Request.Cookies["refreshToken"];
-        if (string.IsNullOrEmpty(refreshToken))
-        {
-            return BadRequest();
-        }
+        if (string.IsNullOrEmpty(refreshToken)) return BadRequest();
         var response = await _userService.RefreshToken(refreshToken, IpAddress());
         SetTokenCookie(response.RefreshToken);
         return Ok(response);
@@ -63,10 +59,10 @@ public class UsersController : ControllerBase
         var token = model.Token;
 
         if (string.IsNullOrEmpty(token))
-            return BadRequest(new { message = "Token is required" });
+            return BadRequest(new {message = "Token is required"});
 
         await _userService.RevokeToken(token, IpAddress());
-        return Ok(new { message = "Token revoked" });
+        return Ok(new {message = "Token revoked"});
     }
 
     [HttpGet]
@@ -89,7 +85,7 @@ public class UsersController : ControllerBase
         var user = await _userService.GetById(id);
         return Ok(user.RefreshTokens);
     }
-    
+
     private void SetTokenCookie(string token)
     {
         var cookieOptions = new CookieOptions

@@ -11,9 +11,7 @@ public class User
     public bool EmailValidated { get; set; }
     public string? Role { get; set; }
 
-    [JsonIgnore]
-    public string PasswordHash { get; set; }
+    [JsonIgnore] public string PasswordHash { get; set; }
 
-    [JsonIgnore]
-    public List<RefreshToken> RefreshTokens { get; set; }
+    [JsonIgnore] public List<RefreshToken> RefreshTokens { get; set; }
 }

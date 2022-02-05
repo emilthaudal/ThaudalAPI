@@ -13,27 +13,30 @@ using UserService.Model.Users;
 
 namespace UserService.Service;
 
-public class JwtService: IJwtService
+public class JwtService : IJwtService
 {
-    private readonly ILogger<JwtService> _logger;
     private readonly IConfiguration _configuration;
     private readonly IDbContextFactory<UserDataContext> _dbContextFactory;
+    private readonly ILogger<JwtService> _logger;
 
-    public JwtService(ILogger<JwtService> logger, IConfiguration configuration, IDbContextFactory<UserDataContext> dbContextFactory)
+    public JwtService(ILogger<JwtService> logger, IConfiguration configuration,
+        IDbContextFactory<UserDataContext> dbContextFactory)
     {
         _logger = logger;
         _configuration = configuration;
         _dbContextFactory = dbContextFactory;
     }
+
     public Task<string> GenerateJwtToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_configuration["jwt:secret"]);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new[] { new Claim("id", user.Id.ToString()) }),
+            Subject = new ClaimsIdentity(new[] {new Claim("id", user.Id.ToString())}),
             Expires = DateTime.UtcNow.AddMinutes(15),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            SigningCredentials =
+                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return Task.FromResult(tokenHandler.WriteToken(token));
@@ -57,7 +60,7 @@ public class JwtService: IJwtService
                 ClockSkew = TimeSpan.Zero
             }, out var validatedToken);
 
-            var jwtToken = (JwtSecurityToken)validatedToken;
+            var jwtToken = (JwtSecurityToken) validatedToken;
             var userId = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
             return Task.FromResult(userId);
@@ -79,8 +82,6 @@ public class JwtService: IJwtService
         };
 
         return refreshToken;
-
-        
     }
 
     private async Task<string> GetUniqueToken()

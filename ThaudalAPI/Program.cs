@@ -22,10 +22,7 @@ if (builder.Environment.IsDevelopment())
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(
-            corsBuilder =>
-            {
-                corsBuilder.WithOrigins("localhost");
-            });
+            corsBuilder => { corsBuilder.WithOrigins("localhost"); });
     });
 }
 else
@@ -36,13 +33,10 @@ else
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(
-            corsBuilder =>
-            {
-                corsBuilder.WithOrigins("https://thaudal.azurewebsites.net");
-            });
+            corsBuilder => { corsBuilder.WithOrigins("https://thaudal.azurewebsites.net"); });
     });
 }
-    
+
 
 builder.Services.AddScoped<ITodoListService, TodoListService>();
 builder.Services.AddScoped<IUserService, UserService.Service.UserService>();
@@ -56,6 +50,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseCors();
 
 app.UseMiddleware<ErrorHandlerMiddleware>();

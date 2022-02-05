@@ -5,7 +5,7 @@ using TodoService.Model;
 
 namespace TodoService.Service;
 
-public class TodoListService: ITodoListService
+public class TodoListService : ITodoListService
 {
     private readonly IDbContextFactory<TodoAppDbContext> _dbContextFactory;
 
@@ -17,6 +17,7 @@ public class TodoListService: ITodoListService
         using var context = _dbContextFactory.CreateDbContext();
         context.Database.EnsureCreated();
     }
+
     public async Task<IEnumerable<TodoList>> GetLists()
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync();
@@ -28,20 +29,14 @@ public class TodoListService: ITodoListService
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync();
         var list = await context.TodoLists.FirstOrDefaultAsync(t => t.Title.Equals(title));
-        if (list == default)
-        {
-            throw new InvalidOperationException("Todolist not found");
-        }
+        if (list == default) throw new InvalidOperationException("Todolist not found");
 
         return list;
     }
 
     public async Task<TodoList> CreateList(TodoList todoList)
     {
-        if (string.IsNullOrEmpty(todoList.Title))
-        {
-            throw new ArgumentNullException(todoList.Title);
-        }
+        if (string.IsNullOrEmpty(todoList.Title)) throw new ArgumentNullException(todoList.Title);
 
         await using var context = await _dbContextFactory.CreateDbContextAsync();
         await context.TodoLists.AddAsync(todoList);
@@ -51,17 +46,11 @@ public class TodoListService: ITodoListService
 
     public async Task<TodoList> UpdateList(TodoList todoList)
     {
-        if (string.IsNullOrEmpty(todoList.Title))
-        {
-            throw new ArgumentNullException(todoList.Title);
-        }
+        if (string.IsNullOrEmpty(todoList.Title)) throw new ArgumentNullException(todoList.Title);
 
         await using var context = await _dbContextFactory.CreateDbContextAsync();
         var existingList = await context.TodoLists.FirstOrDefaultAsync(l => l.Title.Equals(todoList.Title));
-        if (existingList == default)
-        {
-            throw new InvalidOperationException("Update list not found");
-        }
+        if (existingList == default) throw new InvalidOperationException("Update list not found");
 
         existingList = todoList;
         await context.SaveChangesAsync();

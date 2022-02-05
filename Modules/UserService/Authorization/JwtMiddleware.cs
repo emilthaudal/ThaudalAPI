@@ -16,10 +16,7 @@ public class JwtMiddleware
     {
         var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
         var userId = await jwtService.ValidateJwtToken(token);
-        if (userId != default)
-        {
-            context.Items["User"] = userService.GetById(userId);
-        }
+        if (userId != default) context.Items["User"] = userService.GetById(userId);
 
         await _next(context);
     }

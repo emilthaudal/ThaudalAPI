@@ -11,11 +11,11 @@ namespace UserService.Service;
 
 public class UserService : IUserService
 {
-    private readonly ILogger<UserService> _logger;
+    private readonly IConfiguration _configuration;
     private readonly UserDataContext _context;
     private readonly IJwtService _jwtService;
-    private readonly IConfiguration _configuration;
-    
+    private readonly ILogger<UserService> _logger;
+
     public UserService(ILogger<UserService> logger,
         IJwtService jwtService,
         IConfiguration configuration, UserDataContext context)
@@ -57,7 +57,8 @@ public class UserService : IUserService
 
         if (refreshToken.IsRevoked)
         {
-            RevokeDescendantRefreshTokens(refreshToken, user, ipAddress, $"Attempted reuse of revoked ancestor token: {token}");
+            RevokeDescendantRefreshTokens(refreshToken, user, ipAddress,
+                $"Attempted reuse of revoked ancestor token: {token}");
             _context.Update(user);
             await _context.SaveChangesAsync();
         }
@@ -133,6 +134,7 @@ public class UserService : IUserService
             response.Result = CreateUserResult.InvalidName;
             return response;
         }
+
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.Equals(createUserRequest.UserName));
         if (user != default)
         {
@@ -161,7 +163,7 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
         return true;
     }
-    
+
     private User GetUserByRefreshToken(string token)
     {
         var user = _context.Users.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
@@ -182,30 +184,26 @@ public class UserService : IUserService
     private void RemoveOldRefreshTokens(User user)
     {
         var tokenLifeTime = int.Parse(_configuration["jwt:RefreshTokenTTL"]);
-        if (tokenLifeTime == default)
-        {
-            return;
-        }
-        user.RefreshTokens.RemoveAll(x => 
-            !x.IsActive && 
+        if (tokenLifeTime == default) return;
+        user.RefreshTokens.RemoveAll(x =>
+            !x.IsActive &&
             x.Created.AddDays(tokenLifeTime) <= DateTime.UtcNow);
     }
 
-    private static void RevokeDescendantRefreshTokens(RefreshToken refreshToken, User user, string ipAddress, string reason)
+    private static void RevokeDescendantRefreshTokens(RefreshToken refreshToken, User user, string ipAddress,
+        string reason)
     {
         if (string.IsNullOrEmpty(refreshToken.ReplacedByToken)) return;
         var childToken = user.RefreshTokens.SingleOrDefault(x => x.Token == refreshToken.ReplacedByToken);
-        if (childToken == null)
-        {
-            return;
-        }
+        if (childToken == null) return;
         if (childToken.IsActive)
             RevokeRefreshToken(childToken, ipAddress, reason);
         else
             RevokeDescendantRefreshTokens(childToken, user, ipAddress, reason);
     }
 
-    private static void RevokeRefreshToken(RefreshToken token, string ipAddress, string? reason = null, string? replacedByToken = null)
+    private static void RevokeRefreshToken(RefreshToken token, string ipAddress, string? reason = null,
+        string? replacedByToken = null)
     {
         token.Revoked = DateTime.UtcNow;
         token.RevokedByIp = ipAddress;

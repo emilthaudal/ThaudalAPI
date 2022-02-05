@@ -4,7 +4,7 @@ namespace ThaudalAPI.Controllers;
 
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class DayOfWeekController: ControllerBase
+public class DayOfWeekController : ControllerBase
 {
     [HttpGet]
     public bool IsItFriday()
