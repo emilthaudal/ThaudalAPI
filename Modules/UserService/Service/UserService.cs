@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Mail;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -151,7 +152,7 @@ public class UserService : IUserService
             Name = createUserRequest.Name,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserRequest.Password),
             Username = createUserRequest.UserName,
-            Roles = new List<string> { "User"}
+            Roles = new List<UserRole> { new UserRole() {Role = "User"}}
         };
         await _context.AddAsync(user);
         await _context.SaveChangesAsync();
@@ -214,5 +215,39 @@ public class UserService : IUserService
         token.RevokedByIp = ipAddress;
         token.ReasonRevoked = reason;
         token.ReplacedByToken = replacedByToken;
+    }
+
+    private MailMessage SendValidationMessage(User createdUser)
+    {
+        var host = _configuration["Mail:SmtpHost"];
+        if (string.IsNullOrEmpty(host))
+        {
+            throw new InvalidOperationException("SMTP Not configured correctly");
+        }
+        var port = _configuration["Mail:SmtpPort"];
+        if (string.IsNullOrEmpty(port) || !int.TryParse(port, out var portNumber))
+        {
+            throw new InvalidOperationException("SMTP Not configured correctly");
+        }
+
+        var username = _configuration["Mail:Username"];
+        var password = _configuration["Mail:Password"];
+
+        if (string.IsNullOrEmpty(username) ||string.IsNullOrEmpty(password))
+        {
+            throw new InvalidOperationException("SMTP Not configured correctly");
+        }
+        var client = new SmtpClient(host, portNumber);
+
+        client.Credentials = new NetworkCredential(username, password);
+        client.EnableSsl = true;
+        var confirmUrl = $"https://localhost:7209/api/users/confirm/{createdUser.Id}";
+
+        var mailMessage = new MailMessage
+        {
+            Body = "Confirm account:" + Environment.NewLine + confirmUrl
+        };
+        client.Send(mailMessage);
+        return mailMessage;
     }
 }

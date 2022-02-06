@@ -18,6 +18,5 @@ public class AuthenticateResponse
     public string Name { get; set; }
     public string Username { get; set; }
     public string JwtToken { get; set; }
-
-    [JsonIgnore] public string RefreshToken { get; set; }
+    public string RefreshToken { get; set; }
 }
