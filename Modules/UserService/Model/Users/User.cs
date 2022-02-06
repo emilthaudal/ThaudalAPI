@@ -9,7 +9,7 @@ public class User
     public string Name { get; set; }
     public string Username { get; set; }
     public bool EmailValidated { get; set; }
-    public List<string>? Roles { get; set; }
+    public List<UserRole>? Roles { get; set; }
 
     [JsonIgnore] public string PasswordHash { get; set; }
 

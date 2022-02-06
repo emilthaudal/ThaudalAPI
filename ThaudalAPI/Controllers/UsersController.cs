@@ -8,7 +8,7 @@ namespace ThaudalAPI.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -44,9 +44,8 @@ public class UsersController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken()
+    public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
     {
-        var refreshToken = Request.Cookies["refreshToken"];
         if (string.IsNullOrEmpty(refreshToken)) return BadRequest();
         var response = await _userService.RefreshToken(refreshToken, IpAddress());
         SetTokenCookie(response.RefreshToken);

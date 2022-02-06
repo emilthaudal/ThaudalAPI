@@ -52,7 +52,10 @@ if (builder.Environment.IsDevelopment())
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(
-            corsBuilder => { corsBuilder.WithOrigins("https://localhost:3000", "http://localhost:3000", "localhost"); });
+            corsBuilder =>
+            {
+                corsBuilder.WithOrigins("https://localhost:3000", "http://localhost:3000", "localhost").AllowAnyHeader();
+            });
     });
 }
 else
@@ -67,7 +70,7 @@ else
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(
-            corsBuilder => { corsBuilder.WithOrigins("https://thaudal.azurewebsites.net"); });
+            corsBuilder => { corsBuilder.WithOrigins("https://thaudal.azurewebsites.net").AllowAnyHeader(); });
     });
 }
 
