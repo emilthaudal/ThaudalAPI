@@ -19,7 +19,7 @@ public class UsersController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpPost]
+    [HttpPost("create")]
     public async Task<ActionResult> CreateUser([FromBody] CreateUserRequest userRequest)
     {
         var response = await _userService.CreateUser(userRequest);
@@ -29,7 +29,6 @@ public class UsersController : ControllerBase
             Password = userRequest.Password,
             Username = response.User?.Username
         }, IpAddress());
-        SetTokenCookie(authResponse.RefreshToken);
         return Ok(response.User);
     }
 
@@ -38,17 +37,15 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> Authenticate([FromBody] AuthenticateRequest model)
     {
         var response = await _userService.Authenticate(model, IpAddress());
-        SetTokenCookie(response.RefreshToken);
         return Ok(response);
     }
 
     [AllowAnonymous]
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
     {
-        if (string.IsNullOrEmpty(refreshToken)) return BadRequest();
-        var response = await _userService.RefreshToken(refreshToken, IpAddress());
-        SetTokenCookie(response.RefreshToken);
+        if (string.IsNullOrEmpty(request.RefreshToken)) return BadRequest();
+        var response = await _userService.RefreshToken(request.RefreshToken, IpAddress());
         return Ok(response);
     }
 
@@ -92,8 +89,7 @@ public class UsersController : ControllerBase
     {
         var cookieOptions = new CookieOptions
         {
-            HttpOnly = true,
-            Expires = DateTime.UtcNow.AddDays(7)
+            Expires = DateTime.UtcNow.AddDays(7),
         };
         Response.Cookies.Append("refreshToken", token, cookieOptions);
     }
