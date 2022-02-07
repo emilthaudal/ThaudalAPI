@@ -16,4 +16,8 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.1" />
     </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\ThaudalAPI.Model\ThaudalAPI.Model.csproj" />
+    </ItemGroup>
 </Project>

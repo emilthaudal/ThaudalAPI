@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
-namespace UserService.Model.Auth;
+namespace ThaudalAPI.Model.Model.Auth;
 
 [Owned]
 public class RefreshToken

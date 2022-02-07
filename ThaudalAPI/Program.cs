@@ -6,11 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ThaudalAPI.Helpers;
+using ThaudalAPI.Model.Model;
 using TodoService.Interfaces;
-using TodoService.Model;
 using TodoService.Service;
 using UserService.Interfaces;
-using UserService.Model;
 using UserService.Service;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,13 +41,12 @@ builder.Services.AddSwaggerGen(c =>
         {securityScheme, Array.Empty<string>()}
     });
 });
+builder.Services.AddDbContext<ThaudalDbContext>(options => options.UseCosmos(
+    builder.Configuration["Cosmos:ConnectionString"],
+    builder.Configuration["Cosmos:Database"]));
 
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddDbContext<TodoAppDbContext>(options =>
-        options.UseSqlite(builder.Configuration["SqLite:ConnectionString"]));
-    builder.Services.AddDbContext<UserDataContext>(options =>
-        options.UseSqlite(builder.Configuration["SqLite:ConnectionString"]));
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(
@@ -60,13 +58,6 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
-    builder.Services.AddDbContext<TodoAppDbContext>(options => options.UseCosmos(
-        builder.Configuration["Cosmos:ConnectionString"],
-        builder.Configuration["Cosmos:Database"]));
-    
-    builder.Services.AddDbContext<UserDataContext>(options => options.UseCosmos(
-        builder.Configuration["Cosmos:ConnectionString"],
-        builder.Configuration["Cosmos:Database"]));
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(

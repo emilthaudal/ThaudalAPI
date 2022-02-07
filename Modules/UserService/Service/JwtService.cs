@@ -2,23 +2,24 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using ThaudalAPI.Model.Model;
+using ThaudalAPI.Model.Model.Auth;
+using ThaudalAPI.Model.Model.Users;
 using UserService.Interfaces;
-using UserService.Model;
-using UserService.Model.Auth;
-using UserService.Model.Users;
 
 namespace UserService.Service;
 
 public class JwtService : IJwtService
 {
     private readonly IConfiguration _configuration;
-    private readonly UserDataContext _context;
+    private readonly ThaudalDbContext _context;
     private readonly ILogger<JwtService> _logger;
 
-    public JwtService(ILogger<JwtService> logger, IConfiguration configuration, UserDataContext context)
+    public JwtService(ILogger<JwtService> logger, IConfiguration configuration, ThaudalDbContext context)
     {
         _logger = logger;
         _configuration = configuration;
@@ -57,6 +58,11 @@ public class JwtService : IJwtService
         if (token == null)
             return Task.FromResult<Guid>(default);
 
+        if (token.StartsWith("Bearer"))
+        {
+            token = token[7..];
+        }
+
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
         try
@@ -67,7 +73,9 @@ public class JwtService : IJwtService
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ValidateIssuer = true,
                 ValidateAudience = true,
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.Zero,
+                ValidAudience = _configuration["Jwt:Audience"],
+                ValidIssuer = _configuration["Jwt:Issuer"],
             }, out var validatedToken);
 
             var jwtToken = (JwtSecurityToken) validatedToken;
@@ -94,14 +102,11 @@ public class JwtService : IJwtService
         return refreshToken;
     }
 
-    private Task<string> GetUniqueToken()
+    private static Task<string> GetUniqueToken()
     {
         while (true)
         {
             var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-            var tokenIsUnique = !_context.Users.Any(u => u.RefreshTokens.Any(t => t.Token == token));
-
-            if (!tokenIsUnique) continue;
 
             return Task.FromResult(token);
         }

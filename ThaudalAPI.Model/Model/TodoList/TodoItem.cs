@@ -1,4 +1,4 @@
-﻿namespace TodoService.Model;
+﻿namespace ThaudalAPI.Model.Model;
 
 public class TodoItem
 {

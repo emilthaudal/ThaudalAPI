@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ThaudalAPI.Model.Model.Auth;
+using ThaudalAPI.Model.Model.Users;
 using UserService.Interfaces;
-using UserService.Model.Auth;
-using UserService.Model.Users;
 
 namespace ThaudalAPI.Controllers;
 
@@ -29,7 +29,7 @@ public class UsersController : ControllerBase
             Password = userRequest.Password,
             Username = response.User?.Username
         }, IpAddress());
-        return Ok(response.User);
+        return Ok(authResponse);
     }
 
     [AllowAnonymous]

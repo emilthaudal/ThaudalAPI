@@ -1,5 +1,5 @@
-using UserService.Model.Auth;
-using UserService.Model.Users;
+using ThaudalAPI.Model.Model.Auth;
+using ThaudalAPI.Model.Model.Users;
 
 namespace UserService.Interfaces;
 

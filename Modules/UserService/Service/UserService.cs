@@ -3,23 +3,23 @@ using System.Net.Mail;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using ThaudalAPI.Model.Model;
+using ThaudalAPI.Model.Model.Auth;
+using ThaudalAPI.Model.Model.Users;
 using UserService.Interfaces;
-using UserService.Model;
-using UserService.Model.Auth;
-using UserService.Model.Users;
 
 namespace UserService.Service;
 
 public class UserService : IUserService
 {
     private readonly IConfiguration _configuration;
-    private readonly UserDataContext _context;
+    private readonly ThaudalDbContext _context;
     private readonly IJwtService _jwtService;
     private readonly ILogger<UserService> _logger;
 
     public UserService(ILogger<UserService> logger,
         IJwtService jwtService,
-        IConfiguration configuration, UserDataContext context)
+        IConfiguration configuration, ThaudalDbContext context)
     {
         _logger = logger;
         _jwtService = jwtService;
@@ -109,6 +109,25 @@ public class UserService : IUserService
         return user;
     }
 
+    public async Task<User> GetByUsername(string username)
+    {
+        var user = await _context.Users.SingleOrDefaultAsync(x => x.Username == username);
+        if (user == null) throw new KeyNotFoundException("User not found");
+        return user;
+    }
+
+    public async Task<User?> GetFromToken(string token)
+    {
+        
+            var userId = await _jwtService.ValidateJwtToken(token);
+            if (userId == default)
+                return null;
+
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            return user;
+        
+    }
+
     public async Task<CreateUserResponse> CreateUser(CreateUserRequest createUserRequest)
     {
         var response = new CreateUserResponse();
@@ -147,13 +166,8 @@ public class UserService : IUserService
             return response;
         }
 
-        user = new User
-        {
-            Name = createUserRequest.Name,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserRequest.Password),
-            Username = createUserRequest.UserName,
-            Roles = new List<UserRole> { new UserRole() {Role = "User"}}
-        };
+        user = new User(createUserRequest.Name, createUserRequest.UserName, false,
+            BCrypt.Net.BCrypt.HashPassword(createUserRequest.Password));
         await _context.AddAsync(user);
         await _context.SaveChangesAsync();
         response.Result = CreateUserResult.Ok;

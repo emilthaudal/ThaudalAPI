@@ -1,7 +1,6 @@
-using System.Text.Json.Serialization;
-using UserService.Model.Users;
+using ThaudalAPI.Model.Model.Users;
 
-namespace UserService.Model.Auth;
+namespace ThaudalAPI.Model.Model.Auth;
 
 public class AuthenticateResponse
 {
