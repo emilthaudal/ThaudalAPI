@@ -5,7 +5,11 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["ThaudalAPI/ThaudalAPI.csproj", "ThaudalAPI/"]
+COPY ["/ThaudalAPI/ThaudalAPI.csproj", "ThaudalAPI/"]
+COPY ["/Modules/DayOfWeekService/DayOfWeekService.csproj", "DayOfWeekService/"]
+COPY ["/Modules/TodoService/TodoService.csproj", "TodoService/"]
+COPY ["/ThaudalAPI.Model/ThaudalAPI.Model.csproj", "ThaudalAPI.Model/"]
+COPY ["/Modules/UserService/UserService.csproj", "UserService/"]
 RUN dotnet restore "ThaudalAPI/ThaudalAPI.csproj"
 COPY . .
 WORKDIR "/src/ThaudalAPI"

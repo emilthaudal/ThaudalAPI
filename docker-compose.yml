@@ -1,12 +1,12 @@
 version: '2.4' # Do not upgrade to 3.x yet, unless you plan to use swarm/docker stack: https://github.com/docker/compose/issues/4513
 
-networks:
-  default:
-    external: false
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.16.238.0/24
+# networks:
+#  default:
+#    external: false
+#    ipam:
+#      driver: default
+#      config:
+#        - subnet: 172.16.238.0/24
 
 services:
 
@@ -14,18 +14,12 @@ services:
   # set hostDirectory=C:\emulator\bind-mount
   # mkdir %hostDirectory%
   
-  thaudalApi:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "7204:7204"
-
+  
   cosmosdb:
     container_name: "azurecosmosemulator"
     hostname: "azurecosmosemulator"
-    image: 'mcr.microsoft.com/cosmosdb/windows/azure-cosmos-emulator'
-    platform: windows
+    image: 'mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator'
+    platform: linux
     tty: true
     mem_limit: 3GB
     ports:
@@ -45,4 +39,16 @@ services:
       default:
         ipv4_address: 172.16.238.246
     volumes:
-      - '${hostDirectory}:C:\CosmosDB.Emulator\bind-mount'
+      - 'c:\emulator\bind-mount:/'
+        
+  thaudalapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7204:7204"
+    environment:
+      - "ASPNETCORE_ENVIRONMENT=DockerDev"
+    networks:
+      default:
+        ipv4_address: 172.16.238.246
