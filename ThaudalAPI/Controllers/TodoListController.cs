@@ -1,4 +1,3 @@
-using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ThaudalAPI.Model.Model;
@@ -21,10 +20,7 @@ public class TodoListController : ControllerBase
     [HttpGet]
     public async IAsyncEnumerable<TodoList> GetLists()
     {
-        if (!Request.Headers.TryGetValue("Authorization", out var token))
-        {
-            throw new UnauthorizedAccessException();
-        }       
+        if (!Request.Headers.TryGetValue("Authorization", out var token)) throw new UnauthorizedAccessException();
         var lists = await _service.GetLists(token);
         foreach (var todoList in lists) yield return todoList;
     }
@@ -32,11 +28,8 @@ public class TodoListController : ControllerBase
     [HttpPost]
     public async Task<TodoList> CreateList([FromBody] TodoList todoList)
     {
-        if (!Request.Headers.TryGetValue("Authorization", out var token))
-        {
-            throw new UnauthorizedAccessException();
-        }
-        
+        if (!Request.Headers.TryGetValue("Authorization", out var token)) throw new UnauthorizedAccessException();
+
         return await _service.CreateList(token, todoList);
     }
 }

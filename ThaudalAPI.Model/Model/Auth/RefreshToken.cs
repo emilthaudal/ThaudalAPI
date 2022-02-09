@@ -1,8 +1,5 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace ThaudalAPI.Model.Model.Auth;
 
-[Owned]
 public class RefreshToken
 {
     public string Token { get; set; }

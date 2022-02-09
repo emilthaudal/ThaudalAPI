@@ -7,25 +7,17 @@ namespace TodoService.Service;
 
 public class TodoListService : ITodoListService
 {
-    private readonly ThaudalDbContext _context;
     private readonly IUserService _userService;
 
-    public TodoListService(ThaudalDbContext context, IConfiguration configuration, IUserService userService)
+    public TodoListService(IConfiguration configuration, IUserService userService)
     {
-        _context = context;
         _userService = userService;
-        if (!bool.TryParse(configuration["SqLite:AutomaticMigrations"], out var runMigrations) ||
-            !runMigrations) return;
-        context.Database.EnsureCreated();
     }
 
     public async Task<IEnumerable<TodoList>> GetLists(string token)
     {
         var user = await _userService.GetFromToken(token);
-        if (user == default)
-        {
-            throw new InvalidOperationException("User not found");
-        }
+        if (user == default) throw new InvalidOperationException("User not found");
         var lists = user.TodoLists;
         return lists;
     }
@@ -43,10 +35,10 @@ public class TodoListService : ITodoListService
     {
         if (string.IsNullOrEmpty(todoList.Title)) throw new ArgumentNullException(todoList.Title);
         var user = await _userService.GetFromToken(token);
+        if (user == default) throw new InvalidOperationException("User not found");
 
         user.TodoLists.Add(todoList);
-        _context.Update(user);
-        await _context.SaveChangesAsync();
+        await _userService.UpdateUser(user);
         return todoList;
     }
 
@@ -59,8 +51,7 @@ public class TodoListService : ITodoListService
         if (existingList == default) throw new InvalidOperationException("Update list not found");
 
         existingList = todoList;
-        _context.Update(user);
-        await _context.SaveChangesAsync();
+        await _userService.UpdateUser(user);
         return existingList;
     }
 }

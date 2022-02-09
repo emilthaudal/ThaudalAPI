@@ -2,11 +2,12 @@ using System.Text;
 using DayOfWeekService.Interfaces;
 using DayOfWeekService.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Azure.Cosmos;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ThaudalAPI.Helpers;
-using ThaudalAPI.Model.Model;
+using ThaudalAPI.Infrastructure.Interface;
+using ThaudalAPI.Infrastructure.Service;
 using TodoService.Interfaces;
 using TodoService.Service;
 using UserService.Interfaces;
@@ -41,31 +42,29 @@ builder.Services.AddSwaggerGen(c =>
         {securityScheme, Array.Empty<string>()}
     });
 });
-builder.Services.AddDbContext<ThaudalDbContext>(options => options.UseCosmos(
-    builder.Configuration["Cosmos:ConnectionString"],
-    builder.Configuration["Cosmos:Database"]));
 
-if (builder.Environment.IsDevelopment())
+builder.Services.AddSingleton(s =>
 {
-    builder.Services.AddCors(options =>
-    {
-        options.AddDefaultPolicy(
-            corsBuilder =>
-            {
-                corsBuilder.WithOrigins("https://localhost:3000", "http://localhost:3000", "localhost").AllowAnyHeader();
-            });
-    });
-}
-else
+    var connectionString = builder.Configuration["Cosmos:ConnectionString"];
+    if (string.IsNullOrEmpty(connectionString))
+        throw new InvalidOperationException(
+            "Please specify a valid CosmosDBConnection in the appSettings.json file or your Azure Functions Settings.");
+
+    return new CosmosClient(connectionString);
+});
+
+builder.Services.AddCors(options =>
 {
-    builder.Services.AddCors(options =>
+    var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>();
+    if (origins == null)
     {
-        options.AddDefaultPolicy(
-            corsBuilder => { corsBuilder.WithOrigins("https://thaudal.azurewebsites.net").AllowAnyHeader(); });
-    });
-}
+        throw new InvalidOperationException("Cors not configured");
+    }
+    options.AddDefaultPolicy(
+        corsBuilder => { corsBuilder.WithOrigins(origins).AllowAnyHeader(); });
+});
 
-
+builder.Services.AddSingleton<IUserRepository, CosmosUserRepository>();
 builder.Services.AddScoped<ITodoListService, TodoListService>();
 builder.Services.AddScoped<IUserService, UserService.Service.UserService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -83,7 +82,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 });
 
@@ -96,8 +95,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
-
-app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();

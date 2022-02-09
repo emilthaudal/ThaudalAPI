@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DayOfWeekService", "Modules
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThaudalAPI.Model", "ThaudalAPI.Model\ThaudalAPI.Model.csproj", "{ECEDC3E4-7D6B-4DB8-A433-D714AEC7BBF5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThaudalAPI.Infrastructure", "ThaudalAPI.Infrastructure\ThaudalAPI.Infrastructure.csproj", "{751A7F45-2807-42D6-A1F2-51123BC50B94}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,10 @@ Global
 		{ECEDC3E4-7D6B-4DB8-A433-D714AEC7BBF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECEDC3E4-7D6B-4DB8-A433-D714AEC7BBF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ECEDC3E4-7D6B-4DB8-A433-D714AEC7BBF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{751A7F45-2807-42D6-A1F2-51123BC50B94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{751A7F45-2807-42D6-A1F2-51123BC50B94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{751A7F45-2807-42D6-A1F2-51123BC50B94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{751A7F45-2807-42D6-A1F2-51123BC50B94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{9A692C18-47A1-4811-8DBE-5F7CDABBF84E} = {8809556D-AC11-4B9D-9F5B-095E3FFFF0E2}

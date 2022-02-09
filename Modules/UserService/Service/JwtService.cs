@@ -2,11 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using ThaudalAPI.Model.Model;
 using ThaudalAPI.Model.Model.Auth;
 using ThaudalAPI.Model.Model.Users;
 using UserService.Interfaces;
@@ -16,14 +14,12 @@ namespace UserService.Service;
 public class JwtService : IJwtService
 {
     private readonly IConfiguration _configuration;
-    private readonly ThaudalDbContext _context;
     private readonly ILogger<JwtService> _logger;
 
-    public JwtService(ILogger<JwtService> logger, IConfiguration configuration, ThaudalDbContext context)
+    public JwtService(ILogger<JwtService> logger, IConfiguration configuration)
     {
         _logger = logger;
         _configuration = configuration;
-        _context = context;
     }
 
     public Task<string> GenerateJwtToken(User user)
@@ -32,13 +28,9 @@ public class JwtService : IJwtService
         var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
         var claims = new Dictionary<string, object>();
         if (user.Roles != null)
-        {
             foreach (var userRole in user.Roles)
-            {
                 claims.Add(ClaimTypes.Role, userRole);
-            }
-        }
-        
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[] {new Claim("id", user.Id.ToString())}),
@@ -58,10 +50,7 @@ public class JwtService : IJwtService
         if (token == null)
             return Task.FromResult<Guid>(default);
 
-        if (token.StartsWith("Bearer"))
-        {
-            token = token[7..];
-        }
+        if (token.StartsWith("Bearer")) token = token[7..];
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
@@ -75,7 +64,7 @@ public class JwtService : IJwtService
                 ValidateAudience = true,
                 ClockSkew = TimeSpan.Zero,
                 ValidAudience = _configuration["Jwt:Audience"],
-                ValidIssuer = _configuration["Jwt:Issuer"],
+                ValidIssuer = _configuration["Jwt:Issuer"]
             }, out var validatedToken);
 
             var jwtToken = (JwtSecurityToken) validatedToken;

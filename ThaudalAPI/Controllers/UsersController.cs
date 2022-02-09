@@ -63,10 +63,10 @@ public class UsersController : ControllerBase
 
     [Authorize(Roles = "Administrator")]
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async IAsyncEnumerable<User> GetAll()
     {
-        var users = await _userService.GetAll();
-        return Ok(users);
+        var users = _userService.GetAll();
+        await foreach (var user in users) yield return user;
     }
 
     [Authorize(Roles = "Administrator")]
@@ -89,7 +89,7 @@ public class UsersController : ControllerBase
     {
         var cookieOptions = new CookieOptions
         {
-            Expires = DateTime.UtcNow.AddDays(7),
+            Expires = DateTime.UtcNow.AddDays(7)
         };
         Response.Cookies.Append("refreshToken", token, cookieOptions);
     }
