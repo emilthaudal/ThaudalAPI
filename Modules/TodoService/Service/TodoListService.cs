@@ -32,7 +32,7 @@ public class TodoListService : ITodoListService
 
     public async Task<TodoList> GetList(string token, string title)
     {
-        var user = await _userService.GetByUsername(token);
+        var user = await _userService.GetFromToken(token);
         var list = user.TodoLists.FirstOrDefault(t => t.Title.Equals(title));
         if (list == default) throw new InvalidOperationException("Todolist not found");
 
@@ -42,7 +42,7 @@ public class TodoListService : ITodoListService
     public async Task<TodoList> CreateList(string token, TodoList todoList)
     {
         if (string.IsNullOrEmpty(todoList.Title)) throw new ArgumentNullException(todoList.Title);
-        var user = await _userService.GetByUsername(token);
+        var user = await _userService.GetFromToken(token);
 
         user.TodoLists.Add(todoList);
         _context.Update(user);
@@ -53,7 +53,7 @@ public class TodoListService : ITodoListService
     public async Task<TodoList> UpdateList(string token, TodoList todoList)
     {
         if (string.IsNullOrEmpty(todoList.Title)) throw new ArgumentNullException(todoList.Title);
-        var user = await _userService.GetByUsername(token);
+        var user = await _userService.GetFromToken(token);
 
         var existingList = user.TodoLists.FirstOrDefault(l => l.Title.Equals(todoList.Title));
         if (existingList == default) throw new InvalidOperationException("Update list not found");
