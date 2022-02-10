@@ -5,13 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-
-    <ItemGroup>
-        <Reference Include="Microsoft.AspNetCore.Hosting.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
-            <HintPath>..\..\..\..\..\usr\local\share\dotnet\shared\Microsoft.AspNetCore.App\6.0.0\Microsoft.AspNetCore.Hosting.Abstractions.dll</HintPath>
-        </Reference>
-    </ItemGroup>
-
+    
     <ItemGroup>
         <ProjectReference Include="..\..\ThaudalAPI.Model\ThaudalAPI.Model.csproj"/>
         <ProjectReference Include="..\UserService\UserService.csproj"/>
