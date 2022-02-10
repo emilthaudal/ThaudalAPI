@@ -9,24 +9,21 @@ namespace ThaudalAPI.Infrastructure.Service;
 
 public class CosmosUserRepository : IUserRepository
 {
-    private readonly IConfiguration _configuration;
     private readonly Container _container;
-    private readonly CosmosClient _cosmosClient;
     private readonly ILogger<CosmosUserRepository> _logger;
 
     public CosmosUserRepository(ILogger<CosmosUserRepository> logger, CosmosClient cosmosClient,
         IConfiguration configuration)
     {
         _logger = logger;
-        _cosmosClient = cosmosClient;
-        _configuration = configuration;
-        _container = cosmosClient.GetContainer(_configuration["Cosmos:Database"], _configuration["Cosmos:Container"]);
+        _container = cosmosClient.GetContainer(configuration["Cosmos:Database"], configuration["Cosmos:Container"]);
     }
 
     public async Task<User?> GetUserByIdAsync(Guid id)
     {
         try
         {
+            _logger.LogInformation("Getting user {UserId}", id);
             var response = await _container.ReadItemAsync<User>(id.ToString(), new PartitionKey(id.ToString()));
             return response.Resource;
         }
@@ -75,7 +72,7 @@ public class CosmosUserRepository : IUserRepository
     public async IAsyncEnumerable<User> GetUsersAsync(string? queryString, Dictionary<string, object> parameters)
     {
         var qd = new QueryDefinition(queryString);
-        foreach (var parameter in parameters) qd.WithParameter(parameter.Key, parameter.Value);
+        foreach (var (parameter, value) in parameters) qd.WithParameter(parameter, value);
         var query = _container.GetItemQueryIterator<User>(qd);
         while (query.HasMoreResults)
         {
