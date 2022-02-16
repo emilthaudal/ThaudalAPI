@@ -13,6 +13,7 @@ public class DayOfWeekController : ControllerBase
     {
         _service = service;
     }
+
     [HttpGet]
     public bool IsItFriday()
     {

@@ -1,0 +1,58 @@
+version: '2.4' # Do not upgrade to 3.x yet, unless you plan to use swarm/docker stack: https://github.com/docker/compose/issues/4513
+
+services:
+
+  # First create a directory that will hold the emulator traces and certificate to be imported
+  # set hostDirectory=C:\emulator\bind-mount
+  # mkdir %hostDirectory%
+  
+  cosmosdb:
+    container_name: "azurecosmosemulator"
+    hostname: "azurecosmosemulator"
+    image: 'mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator'
+    platform: linux
+    tty: true
+    mem_limit: 3GB
+    ports:
+      - '8081:8081'
+      - '8900:8900'
+      - '8901:8901'
+      - '8902:8902'
+      - '10250:10250'
+      - '10251:10251'
+      - '10252:10252'
+      - '10253:10253'
+      - '10254:10254'
+      - '10255:10255'
+      - '10256:10256'
+      - '10350:10350'
+    expose:
+      - '8081'
+    environment:
+      - "AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10"
+      - "AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true"
+      - "AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1"
+    volumes:
+      - 'Thaudal:/CosmosDB.Emulator/bind-mount/'
+  
+  thaudalapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7204:7204"
+      - "5144:5144"
+    expose:
+      - "7204"
+      - "5144"
+    environment:
+      - "ASPNETCORE_ENVIRONMENT=DockerDev"
+      - "ASPNETCORE_URLS=https://localhost:7204;http://localhost:5144"
+      - "ASPNETCORE_URLS=https://+:443;http://+:80"
+      - "ASPNETCORE_Kestrel__Certificates__Default__Password=password"
+      - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx"
+
+volumes:
+  Thaudal:
+    external: true
+    

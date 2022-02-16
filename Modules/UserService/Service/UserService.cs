@@ -1,39 +1,34 @@
 using System.Net;
 using System.Net.Mail;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using ThaudalAPI.Infrastructure.Interface;
+using ThaudalAPI.Model.Model.Auth;
+using ThaudalAPI.Model.Model.Users;
 using UserService.Interfaces;
-using UserService.Model;
-using UserService.Model.Auth;
-using UserService.Model.Users;
 
 namespace UserService.Service;
 
 public class UserService : IUserService
 {
     private readonly IConfiguration _configuration;
-    private readonly UserDataContext _context;
     private readonly IJwtService _jwtService;
     private readonly ILogger<UserService> _logger;
+    private readonly IUserRepository _userRepository;
 
     public UserService(ILogger<UserService> logger,
         IJwtService jwtService,
-        IConfiguration configuration, UserDataContext context)
+        IConfiguration configuration, IUserRepository userRepository)
     {
         _logger = logger;
         _jwtService = jwtService;
         _configuration = configuration;
-        _context = context;
-        
-        if (!bool.TryParse(configuration["SqLite:AutomaticMigrations"], out var runMigrations) ||
-            !runMigrations) return;
-        context.Database.EnsureCreated();
+        _userRepository = userRepository;
     }
 
     public async Task<AuthenticateResponse> Authenticate(AuthenticateRequest model, string ipAddress)
     {
-        var user = _context.Users.SingleOrDefault(x => x.Username == model.Username);
+        var user = await _userRepository.GetUserByIdAsync(model.Username);
 
         // Validate the user
         if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
@@ -49,23 +44,21 @@ public class UserService : IUserService
         RemoveOldRefreshTokens(user);
 
         // Save updated refresh tokens
-        _context.Update(user);
-        await _context.SaveChangesAsync();
+        await _userRepository.UpdateUserAsync(user);
 
         return new AuthenticateResponse(user, jwtToken, refreshToken.Token);
     }
 
     public async Task<AuthenticateResponse> RefreshToken(string token, string ipAddress)
     {
-        var user = GetUserByRefreshToken(token);
+        var user = await GetUserByRefreshToken(token);
         var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
 
         if (refreshToken.IsRevoked)
         {
             RevokeDescendantRefreshTokens(refreshToken, user, ipAddress,
                 $"Attempted reuse of revoked ancestor token: {token}");
-            _context.Update(user);
-            await _context.SaveChangesAsync();
+            await _userRepository.UpdateUserAsync(user);
         }
 
         if (!refreshToken.IsActive)
@@ -76,8 +69,7 @@ public class UserService : IUserService
 
         RemoveOldRefreshTokens(user);
 
-        _context.Update(user);
-        await _context.SaveChangesAsync();
+        await _userRepository.UpdateUserAsync(user);
 
         var jwtToken = await _jwtService.GenerateJwtToken(user);
 
@@ -86,26 +78,35 @@ public class UserService : IUserService
 
     public async Task RevokeToken(string token, string ipAddress)
     {
-        var user = GetUserByRefreshToken(token);
+        var user = await GetUserByRefreshToken(token);
         var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
 
         if (!refreshToken.IsActive)
             throw new InvalidOperationException("Invalid token");
 
         RevokeRefreshToken(refreshToken, ipAddress, "Revoked without replacement");
-        _context.Update(user);
-        await _context.SaveChangesAsync();
+        await _userRepository.UpdateUserAsync(user);
     }
 
-    public Task<IEnumerable<User>> GetAll()
+    public IAsyncEnumerable<User> GetAll()
     {
-        return Task.FromResult(_context.Users.AsEnumerable());
+        return _userRepository.GetUsersAsync("");
     }
 
-    public async Task<User> GetById(Guid id)
+    public async Task<User> GetById(string id)
     {
-        var user = await _context.Users.FindAsync(id);
+        var user = await _userRepository.GetUserByIdAsync(id);
         if (user == null) throw new KeyNotFoundException("User not found");
+        return user;
+    }
+
+    public async Task<User?> GetFromToken(string token)
+    {
+        var userId = await _jwtService.ValidateJwtToken(token);
+        if (userId == default)
+            return null;
+
+        var user = await _userRepository.GetUserByIdAsync(userId);
         return user;
     }
 
@@ -140,39 +141,38 @@ public class UserService : IUserService
             return response;
         }
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.Equals(createUserRequest.UserName));
+        var user = await _userRepository.GetUserByIdAsync(createUserRequest.UserName);
         if (user != default)
         {
             response.Result = CreateUserResult.ExistingUser;
             return response;
         }
 
-        user = new User
-        {
-            Name = createUserRequest.Name,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserRequest.Password),
-            Username = createUserRequest.UserName,
-            Roles = new List<UserRole> { new UserRole() {Role = "User"}}
-        };
-        await _context.AddAsync(user);
-        await _context.SaveChangesAsync();
+        user = new User(createUserRequest.Name, createUserRequest.UserName, false,
+            BCrypt.Net.BCrypt.HashPassword(createUserRequest.Password));
+        user = await _userRepository.CreateUserAsync(user);
         response.Result = CreateUserResult.Ok;
         response.User = user;
         return response;
     }
 
-    public async Task<bool> ValidateEmail(Guid userId)
+    public async Task<User> UpdateUser(User user)
+    {
+        var updateUser = await _userRepository.UpdateUserAsync(user);
+        return updateUser ?? user;
+    }
+
+    public async Task<bool> ValidateEmail(string userId)
     {
         var user = await GetById(userId);
         user.EmailValidated = true;
-        _context.Update(user);
-        await _context.SaveChangesAsync();
+        await _userRepository.UpdateUserAsync(user);
         return true;
     }
 
-    private User GetUserByRefreshToken(string token)
+    private async Task<User> GetUserByRefreshToken(string token)
     {
-        var user = _context.Users.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
+        var user = await _userRepository.GetUserByRefreshToken(token);
 
         if (user == null)
             throw new InvalidOperationException("Invalid token");
@@ -220,23 +220,16 @@ public class UserService : IUserService
     private MailMessage SendValidationMessage(User createdUser)
     {
         var host = _configuration["Mail:SmtpHost"];
-        if (string.IsNullOrEmpty(host))
-        {
-            throw new InvalidOperationException("SMTP Not configured correctly");
-        }
+        if (string.IsNullOrEmpty(host)) throw new InvalidOperationException("SMTP Not configured correctly");
         var port = _configuration["Mail:SmtpPort"];
         if (string.IsNullOrEmpty(port) || !int.TryParse(port, out var portNumber))
-        {
             throw new InvalidOperationException("SMTP Not configured correctly");
-        }
 
         var username = _configuration["Mail:Username"];
         var password = _configuration["Mail:Password"];
 
-        if (string.IsNullOrEmpty(username) ||string.IsNullOrEmpty(password))
-        {
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             throw new InvalidOperationException("SMTP Not configured correctly");
-        }
         var client = new SmtpClient(host, portNumber);
 
         client.Credentials = new NetworkCredential(username, password);

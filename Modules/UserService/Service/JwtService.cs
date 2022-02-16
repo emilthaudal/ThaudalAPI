@@ -5,24 +5,21 @@ using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using ThaudalAPI.Model.Model.Auth;
+using ThaudalAPI.Model.Model.Users;
 using UserService.Interfaces;
-using UserService.Model;
-using UserService.Model.Auth;
-using UserService.Model.Users;
 
 namespace UserService.Service;
 
 public class JwtService : IJwtService
 {
     private readonly IConfiguration _configuration;
-    private readonly UserDataContext _context;
     private readonly ILogger<JwtService> _logger;
 
-    public JwtService(ILogger<JwtService> logger, IConfiguration configuration, UserDataContext context)
+    public JwtService(ILogger<JwtService> logger, IConfiguration configuration)
     {
         _logger = logger;
         _configuration = configuration;
-        _context = context;
     }
 
     public Task<string> GenerateJwtToken(User user)
@@ -31,13 +28,9 @@ public class JwtService : IJwtService
         var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
         var claims = new Dictionary<string, object>();
         if (user.Roles != null)
-        {
             foreach (var userRole in user.Roles)
-            {
                 claims.Add(ClaimTypes.Role, userRole);
-            }
-        }
-        
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[] {new Claim("id", user.Id.ToString())}),
@@ -52,10 +45,12 @@ public class JwtService : IJwtService
         return Task.FromResult(tokenHandler.WriteToken(token));
     }
 
-    public Task<Guid> ValidateJwtToken(string? token)
+    public async Task<string?> ValidateJwtToken(string? token)
     {
         if (token == null)
-            return Task.FromResult<Guid>(default);
+            return null;
+
+        if (token.StartsWith("Bearer")) token = token[7..];
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
@@ -67,17 +62,19 @@ public class JwtService : IJwtService
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ValidateIssuer = true,
                 ValidateAudience = true,
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.Zero,
+                ValidAudience = _configuration["Jwt:Audience"],
+                ValidIssuer = _configuration["Jwt:Issuer"]
             }, out var validatedToken);
 
             var jwtToken = (JwtSecurityToken) validatedToken;
-            var userId = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+            var userId = jwtToken.Claims.First(x => x.Type == "id").Value;
 
-            return Task.FromResult(userId);
+            return userId;
         }
         catch
         {
-            return Task.FromResult<Guid>(default);
+            return null;
         }
     }
 
@@ -94,14 +91,11 @@ public class JwtService : IJwtService
         return refreshToken;
     }
 
-    private Task<string> GetUniqueToken()
+    private static Task<string> GetUniqueToken()
     {
         while (true)
         {
             var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-            var tokenIsUnique = !_context.Users.Any(u => u.RefreshTokens.Any(t => t.Token == token));
-
-            if (!tokenIsUnique) continue;
 
             return Task.FromResult(token);
         }

@@ -1,4 +1,4 @@
-namespace UserService.Model.Auth;
+namespace ThaudalAPI.Model.Model.Auth;
 
 public class RevokeTokenRequest
 {
