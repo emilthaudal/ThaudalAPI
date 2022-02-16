@@ -11,20 +11,18 @@ public class User
         TodoLists = new List<TodoList>();
     }
 
-    public User(string name, string username, bool emailValidated, string passwordHash)
+    public User(string name, string id, bool emailValidated, string passwordHash)
     {
-        Id = Guid.NewGuid();
+        Id = id;
         Name = name;
-        Username = username;
         EmailValidated = emailValidated;
         PasswordHash = passwordHash;
         RefreshTokens = new List<RefreshToken>();
         TodoLists = new List<TodoList>();
     }
 
-    public Guid Id { get; set; }
+    public string Id { get; set; }
     public string Name { get; set; }
-    public string Username { get; set; }
     public bool EmailValidated { get; set; }
     public List<UserRole>? Roles { get; set; }
 

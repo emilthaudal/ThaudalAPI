@@ -4,8 +4,7 @@ namespace ThaudalAPI.Infrastructure.Interface;
 
 public interface IUserRepository
 {
-    public Task<User?> GetUserByIdAsync(Guid id);
-    public Task<User?> GetUserByUsername(string username);
+    public Task<User?> GetUserByIdAsync(string id);
     public Task<User?> GetUserByRefreshToken(string refreshToken);
     public IAsyncEnumerable<User> GetUsersAsync(string? queryString, Dictionary<string, object> parameters);
     public IAsyncEnumerable<User> GetUsersAsync(string? queryString);

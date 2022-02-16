@@ -27,7 +27,7 @@ public class UsersController : ControllerBase
         var authResponse = await _userService.Authenticate(new AuthenticateRequest
         {
             Password = userRequest.Password,
-            Username = response.User?.Username
+            Username = response.User?.Id
         }, IpAddress());
         return Ok(authResponse);
     }
@@ -71,15 +71,15 @@ public class UsersController : ControllerBase
 
     [Authorize(Roles = "Administrator")]
     [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById(string id)
     {
         var user = await _userService.GetById(id);
         return Ok(user);
     }
 
     [Authorize(Roles = "Administrator")]
-    [HttpGet("{id:guid}/refresh-tokens")]
-    public async Task<IActionResult> GetRefreshTokens([FromQuery] Guid id)
+    [HttpGet("{id}/refresh-tokens")]
+    public async Task<IActionResult> GetRefreshTokens([FromQuery] string id)
     {
         var user = await _userService.GetById(id);
         return Ok(user.RefreshTokens);

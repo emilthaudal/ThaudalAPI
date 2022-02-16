@@ -45,10 +45,10 @@ public class JwtService : IJwtService
         return Task.FromResult(tokenHandler.WriteToken(token));
     }
 
-    public Task<Guid> ValidateJwtToken(string? token)
+    public async Task<string?> ValidateJwtToken(string? token)
     {
         if (token == null)
-            return Task.FromResult<Guid>(default);
+            return null;
 
         if (token.StartsWith("Bearer")) token = token[7..];
 
@@ -68,13 +68,13 @@ public class JwtService : IJwtService
             }, out var validatedToken);
 
             var jwtToken = (JwtSecurityToken) validatedToken;
-            var userId = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+            var userId = jwtToken.Claims.First(x => x.Type == "id").Value;
 
-            return Task.FromResult(userId);
+            return userId;
         }
         catch
         {
-            return Task.FromResult<Guid>(default);
+            return null;
         }
     }
 

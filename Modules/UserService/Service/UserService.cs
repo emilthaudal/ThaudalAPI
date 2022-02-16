@@ -28,7 +28,7 @@ public class UserService : IUserService
 
     public async Task<AuthenticateResponse> Authenticate(AuthenticateRequest model, string ipAddress)
     {
-        var user = await _userRepository.GetUserByUsername(model.Username);
+        var user = await _userRepository.GetUserByIdAsync(model.Username);
 
         // Validate the user
         if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
@@ -93,7 +93,7 @@ public class UserService : IUserService
         return _userRepository.GetUsersAsync("");
     }
 
-    public async Task<User> GetById(Guid id)
+    public async Task<User> GetById(string id)
     {
         var user = await _userRepository.GetUserByIdAsync(id);
         if (user == null) throw new KeyNotFoundException("User not found");
@@ -141,7 +141,7 @@ public class UserService : IUserService
             return response;
         }
 
-        var user = await _userRepository.GetUserByUsername(createUserRequest.UserName);
+        var user = await _userRepository.GetUserByIdAsync(createUserRequest.UserName);
         if (user != default)
         {
             response.Result = CreateUserResult.ExistingUser;
@@ -162,7 +162,7 @@ public class UserService : IUserService
         return updateUser ?? user;
     }
 
-    public async Task<bool> ValidateEmail(Guid userId)
+    public async Task<bool> ValidateEmail(string userId)
     {
         var user = await GetById(userId);
         user.EmailValidated = true;
