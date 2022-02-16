@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ThaudalAPI.Model.Model.Auth;
+using ThaudalAPI.Model.Model.Users;
 using UserService.Interfaces;
-using UserService.Model.Auth;
-using UserService.Model.Users;
 
 namespace ThaudalAPI.Controllers;
 
@@ -27,9 +27,9 @@ public class UsersController : ControllerBase
         var authResponse = await _userService.Authenticate(new AuthenticateRequest
         {
             Password = userRequest.Password,
-            Username = response.User?.Username
+            Username = response.User?.Id
         }, IpAddress());
-        return Ok(response.User);
+        return Ok(authResponse);
     }
 
     [AllowAnonymous]
@@ -63,23 +63,23 @@ public class UsersController : ControllerBase
 
     [Authorize(Roles = "Administrator")]
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async IAsyncEnumerable<User> GetAll()
     {
-        var users = await _userService.GetAll();
-        return Ok(users);
+        var users = _userService.GetAll();
+        await foreach (var user in users) yield return user;
     }
 
     [Authorize(Roles = "Administrator")]
     [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById(string id)
     {
         var user = await _userService.GetById(id);
         return Ok(user);
     }
 
     [Authorize(Roles = "Administrator")]
-    [HttpGet("{id:guid}/refresh-tokens")]
-    public async Task<IActionResult> GetRefreshTokens([FromQuery] Guid id)
+    [HttpGet("{id}/refresh-tokens")]
+    public async Task<IActionResult> GetRefreshTokens([FromQuery] string id)
     {
         var user = await _userService.GetById(id);
         return Ok(user.RefreshTokens);
@@ -89,7 +89,7 @@ public class UsersController : ControllerBase
     {
         var cookieOptions = new CookieOptions
         {
-            Expires = DateTime.UtcNow.AddDays(7),
+            Expires = DateTime.UtcNow.AddDays(7)
         };
         Response.Cookies.Append("refreshToken", token, cookieOptions);
     }

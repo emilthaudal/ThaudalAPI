@@ -1,4 +1,4 @@
-namespace UserService.Model.Users;
+namespace ThaudalAPI.Model.Model.Users;
 
 public class CreateUserRequest
 {
