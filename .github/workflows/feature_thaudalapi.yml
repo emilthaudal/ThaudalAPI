@@ -8,6 +8,10 @@ on:
     branches:
       - development
       - feature/*
+  pull_request:
+    branches: 
+      - development
+      - feature/*
   workflow_dispatch:
 
 jobs:
