@@ -23,7 +23,7 @@ public class UsersController : ControllerBase
     public async Task<ActionResult> CreateUser([FromBody] CreateUserRequest userRequest)
     {
         var response = await _userService.CreateUser(userRequest);
-        if (response.Result != CreateUserResult.Ok || response.User == null) return BadRequest(response.Result);
+        if (response.Result != CreateUserResult.Ok || response.User == null) return BadRequest(response.GetResult);
         var authResponse = await _userService.Authenticate(new AuthenticateRequest
         {
             Password = userRequest.Password,
