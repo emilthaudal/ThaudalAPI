@@ -17,7 +17,13 @@ public class CustomerService: ICustomerService
     }
     public async Task<Customer> CreateCustomer(Customer customer)
     {
-        throw new NotImplementedException();
+        var existing = await _customerRepository.GetCustomerAsync(customer.CustomerNumber);
+        if (existing != default)
+        {
+            throw new InvalidOperationException("Customer already exists");
+        }
+
+        return await _customerRepository.CreateCustomerAsync(customer);
     }
 
     public async Task<Customer> UpdateCustomer(Customer customer)
